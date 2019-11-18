@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Snake Game</title>
+        <style type="text/css">
+        	table,td{border:1px solid #888;}
+        </style>
+        <script type="text/javascript">
+			function $(id){
+				return document.getElementById(id);
+			}
+			var maxScope = 30;		//表格大小的
+			var nowDirection = 'left';
+			var speed = 100;
+			var cellWidth = 10;
+			var snakeBody = null;   //存放 蛇的身体的坐标的数组
+			
+			var interval;
+			
+			function init(){
+				snakeBody = new Array();
+				///////绘制表格///////////////////////////////
+				for(i=0;i<maxScope;i++){
+					var row = document.createElement("tr");
+					row.id = i;
+					for(j=0;j<maxScope;j++){
+						var cell = document.createElement("td");
+						cell.id = i+"-"+j;
+						cell.width = cellWidth;
+						cell.height = cellWidth;
+						row.appendChild(cell);
+					}
+					$("table").appendChild(row);
+				}
+				initSnake();   //初始化蛇
+				initFood();
+				snakeInterval();
+			}
+			 function snakeInterval(){
+				interval = window.setInterval("snakeMove()",speed);
+			}
+			function initSnake(){                                        //0-1   0-2
+				var x = parseInt((Math.random() * maxScope - 1));    //产生蛇的随机x坐标
+				var y = parseInt((Math.random() * maxScope - 1));	 //产生蛇的随机y坐标
+				var nowHeadStation = x+"-"+y;                        //将坐标拼接成 i-j 的形式，这样和表格<td>的id格式一致。
+				snakeBody.push(nowHeadStation);
+				tdState(nowHeadStation);					//调用更改样式的方法将蛇画出来
+			}
+			function initFood(){
+				var allCells = new Array();    //存放整个表格所有的单元格坐标
+				for(i=0;i<maxScope;i++){
+					for(j=0;j<maxScope;j++){
+						allCells.push(i+"-"+j);
+					}
+				}
+				
+				var addCellString = allCells.join(',')+",";   //获得所有表格单元格的坐标字符串。 0-1,0-2,0-4,...29-29,
+				for(k=0;k<snakeBody.length;k++){
+					snakeBodyTemp = snakeBody[k]+",";    //0-3,
+					addCellString = addCellString.replace(snakeBodyTemp,"");
+				}
+				
+				var _addCellsArray = addCellString.split(',');
+				foodPos = _addCellsArray[parseInt(Math.random() * (_addCellsArray.length -1))];
+				foodState(foodPos);   //调用画食物的方法
+			}
+			function foodState(tdId){
+				$(tdId).style.background = "#c60c0e";
+			}
+			function tdState(tdId){
+				$(tdId).style.background = "#1f52af";	//将指定id的<td>标记画出颜色
+			}
+			function tdStateBack(tdId){
+				$(tdId).style.background = "";			//将指定id的<td>标记还原颜色
+			}
+			function getPos(p){
+				switch(p){
+					case 'x':
+						return $(snakeBody[0]).id.split("-")[0];
+					case 'y':
+						return $(snakeBody[0]).id.split("-")[1];
+				}
+			}
+			
+			document.onkeydown = function(){
+				var oEvent = window.event;
+				switch(oEvent.keyCode){
+					case 37:
+						if(nowDirection != 'right')
+							nowDirection = 'left';
+						break;
+					case 38:
+						if(nowDirection != 'down')
+							nowDirection = 'up';
+						break;
+					case 39:
+						if(nowDirection != 'left')
+							nowDirection = 'right';
+						break;
+					case 40:
+						if(nowDirection != 'up')
+							nowDirection = 'down';
+						break;
+				}
+			}
+			function gameOver(){
+				window.clearInterval(interval);   //蛇停止运动
+				alert("Game Over!");
+			}
+			function rearEnd(x,y){
+				var temp = x+"-"+y;
+				for(var i=0;i<snakeBody.length;i++){
+					if(temp== snakeBody[i]){
+						return true;
+					}
+				}
+				return false;
+			}
+			function snakeMove(){
+				foodx = foodPos.split('-')[0];
+				foody = foodPos.split('-')[1];
+				switch(nowDirection){
+						case 'left':
+							_x = getPos('x');
+							_y = parseInt(getPos('y'))-1;
+						break;
+						case 'right':
+							_x = getPos('x');
+							_y = parseInt(getPos('y'))+1;
+						break;
+						case 'up':
+							_x = parseInt(getPos('x'))-1;
+							_y = getPos('y');
+						break;
+						case 'down':
+							_x = parseInt(getPos('x'))+1;
+							_y = getPos('y');
+						break;
+				}
+				if(_x <0 || _y <0 || _x > maxScope - 1 || _y > maxScope -1){
+					gameOver();
+				}else if(rearEnd(_x,_y)){
+					gameOver();
+				}else if(_x == foodx && _y == foody){
+					snakeBody.unshift(_x+"-"+_y);
+					tdState(snakeBody[0]);
+					initFood();  //产生新的食物	
+				}else{
+					snakeBody.unshift(_x+"-"+_y);
+					tdState(snakeBody[0]);     //取出首位置的新坐标
+					tdStateBack(snakeBody.pop());		//取出末尾的旧坐标并且删除
+				}
+			} 
+        </script>
+    </head>
+    <body onload="init()">
+		<center><h1>Snake Game</h1></center>
+		<table id="table" align="center" style="border:1px solid #5490cd; background-color: #c7def4">
+			
+		</table>	 
+    </body>
+</html>
